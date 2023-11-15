@@ -15,7 +15,6 @@ import (
 
 func convertHistoryToTimeSeries(history zabbix.History, items []*zabbix.Item) []*timeseries.TimeSeriesData {
 	seriesMap := make(map[string]*timeseries.TimeSeriesData, len(items))
-	hostsCount := getHostsCount(items)
 
 	itemsMap := make(map[string]*zabbix.Item, len(items))
 	for _, item := range items {
@@ -32,10 +31,7 @@ func convertHistoryToTimeSeries(history zabbix.History, items []*zabbix.Item) []
 			itemName := pointItem.ExpandItemName()
 			pointSeries.Meta.Item = pointItem
 			pointSeries.Meta.Item.Name = itemName
-			pointSeries.Meta.Name = itemName
-			if hostsCount > 1 {
-				pointSeries.Meta.Name = fmt.Sprintf("%s: %s", pointItem.Hosts[0].Name, itemName)
-			}
+			pointSeries.Meta.Name = fmt.Sprintf("%s: %s", pointItem.Hosts[0].Name, itemName)
 			pointSeries.Meta.Interval = parseItemUpdateInterval(pointItem.Delay)
 		}
 
@@ -215,15 +211,4 @@ func getValueMapping(item zabbix.Item, valueMaps []zabbix.ValueMap) data.ValueMa
 		})
 	}
 	return mappings
-}
-
-// Returns number of uniq hosts for given items
-func getHostsCount(items []*zabbix.Item) int {
-	hostsMap := make(map[string]bool, 0)
-	for _, item := range items {
-		for _, host := range item.Hosts {
-			hostsMap[host.ID] = true
-		}
-	}
-	return len(hostsMap)
 }
